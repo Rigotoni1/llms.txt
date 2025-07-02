@@ -186,7 +186,8 @@ STRIPE_PRO_PRICE_ID = 'price_1ProTest'          # recurring
 
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 redis_conn = redis.Redis.from_url(REDIS_URL)
-rq_queue = Queue(connection=redis_conn)
+# Use the same queue as the worker service
+rq_queue = Queue('batch_processing', connection=redis_conn)
 
 def get_user_tier(user_id=None):
     """Get user's current tier. Default to free if no user or not found."""
@@ -447,6 +448,39 @@ def upgrade_tier():
     except Exception as e:
         logger.error(f"Upgrade error: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint for monitoring."""
+    try:
+        # Test Redis connection
+        redis_conn.ping()
+        redis_status = "healthy"
+    except Exception as e:
+        redis_status = f"error: {str(e)}"
+    
+    # Test RQ queue
+    try:
+        queue_length = len(rq_queue)
+        rq_status = "healthy"
+    except Exception as e:
+        rq_status = f"error: {str(e)}"
+    
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'services': {
+            'web': 'healthy',
+            'redis': redis_status,
+            'rq_queue': rq_status,
+            'queue_length': queue_length if 'queue_length' in locals() else 'unknown'
+        },
+        'environment': {
+            'redis_url_set': bool(os.environ.get('REDIS_URL')),
+            'port': os.environ.get('PORT', '5000'),
+            'railway_environment': os.environ.get('RAILWAY_ENVIRONMENT', 'unknown')
+        }
+    })
 
 @app.route('/api/logs/<task_id>')
 def stream_logs(task_id):
