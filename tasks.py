@@ -14,6 +14,10 @@ from collections import defaultdict
 
 multiprocessing.set_start_method('spawn', force=True)
 
+# Create necessary directories
+os.makedirs('outputs', exist_ok=True)
+os.makedirs('uploads', exist_ok=True)
+
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 redis_conn = redis.Redis.from_url(REDIS_URL)
 
@@ -140,6 +144,24 @@ def merge_batches(task_id, total_urls, config):
         llms_generator = LLMsTxtGenerator(config)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_filename = f"llms_{config['site_name'].replace(' ', '_')}_{timestamp}.txt"
+        
+        # Ensure outputs directory exists with proper permissions
+        os.makedirs('outputs', exist_ok=True)
+        try:
+            # Test if directory is writable
+            test_file = os.path.join('outputs', '.test_write')
+            with open(test_file, 'w') as f:
+                f.write('test')
+            os.remove(test_file)
+        except Exception as e:
+            log_progress(task_id, f'Warning: outputs directory not writable: {str(e)}')
+            # Try to fix permissions
+            try:
+                os.chmod('outputs', 0o777)
+                log_progress(task_id, 'Fixed outputs directory permissions')
+            except Exception as perm_error:
+                log_progress(task_id, f'Could not fix permissions: {str(perm_error)}')
+        
         output_path = os.path.join('outputs', output_filename)
         
         # Create dummy urls_data for generation (we only need the count)
