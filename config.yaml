@@ -1,0 +1,88 @@
+# Production Configuration for LLMs.txt generator
+sitemap_url: "https://example.com/sitemap.xml"
+site_name: "Example Website"
+site_description: "A comprehensive resource for technology and tutorials"
+
+# Content scraping settings
+content_selector: ".content, #main, article, .post-content, .entry-content, .page-content, .post, .entry"
+title_selector: "h1, .title, .post-title, .entry-title, .page-title"
+meta_description_selector: "meta[name='description']"
+
+# Production content processing limits
+max_content_length: 500
+max_pages_to_process: 1000  # Production: higher limits
+min_content_length: 50
+max_nested_links: 3
+max_blogs: 500  # Production: higher limits
+max_detailed_content: 500  # Production: higher limits
+
+# Sitemap index processing
+max_sitemaps_to_process: 10  # Production: more sitemaps
+
+# Local machine optimized batch processing configuration
+batch_processing:
+  batch_size: 25  # Reduced from 100 to 25 for local machine
+  max_concurrent_batches: 8  # Reduced from 20 to 8 for local machine
+  max_workers_per_batch: 3  # Reduced from 6 to 3 for local machine
+  memory_cleanup_interval: 100  # Reduced from 200 to 100 for local machine
+
+# Local machine performance tuning
+performance:
+  request_timeout: 30  # Reduced from 45 to 30 for local machine
+  connection_pool_size: 20  # Reduced from 50 to 20 for local machine
+  max_retries: 3  # Reduced from 5 to 3 for local machine
+  retry_delay: 1  # Production: faster retries
+
+# Default topics
+default_topics:
+  - Technology
+  - Tutorials
+  - Web Development
+
+# Template for llms.txt generation
+template: |
+  # {site_name}
+  
+  {site_description}
+  
+  ## Key Topics
+  {topics}
+  
+  ## Important Pages
+  {pages}
+  
+  ## Recent Blog Posts
+  {blogs}
+  
+  ## Products
+  {products}
+  
+  ## Detailed Content
+  
+  {detailed_content}
+  
+  ## Site Overview
+  - **Total Pages**: {total_pages}
+  - **Pages Listed**: {pages_count}
+  - **Blog Posts Listed**: {blogs_count}
+  - **Last Updated**: {last_updated}
+  - **Sitemap**: {sitemap_url}
+  
+  ---
+  *Generated on {generation_date}*
+
+# FTP settings (optional)
+ftp:
+  enabled: false
+  host: ""
+  username: ""
+  password: ""
+  remote_path: "/public_html/"
+
+# Production robots.txt compliance
+respect_robots_txt: false
+request_delay: 0.5  # Production: faster processing
+
+# Output settings
+output_file: "llms.txt"
+backup_existing: true

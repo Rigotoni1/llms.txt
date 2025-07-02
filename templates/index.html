@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLMs.txt Generator - AI-Powered Website Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="hero-container">
+        <div class="hero-header">
+            {% if user %}
+            <div class="user-nav">
+                <span class="user-info">
+                    <i class="fas fa-user"></i>
+                    {{ user.email }}
+                </span>
+                <a href="{{ url_for('my_generations') }}" class="nav-link">
+                    <i class="fas fa-history"></i> My Generations
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+            {% else %}
+            <div class="auth-nav">
+                <a href="{{ url_for('login_page') }}" class="nav-link">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="promo-badge">🌟 Test Our Free Plan – Try It Now!</div>
+        <h1 class="hero-title">
+            Boost Your Visibility with LLMs.txt Generator
+        </h1>
+        <div class="hero-subtitle">
+            Get listed by LLMs, drive referral traffic from <span id="llm-typewriter" class="animated-text">ChatGPT</span>!
+        </div>
+        <form id="heroUrlForm" class="hero-url-form">
+            <input type="text" id="urlInput" class="hero-url-input" placeholder="https://example.com" autocomplete="off">
+            <button type="submit" class="hero-url-btn"><i class="fas fa-arrow-right"></i></button>
+        </form>
+        <div class="tier-limits-hero">
+            <small>
+                <strong>Your {{ tier_info[current_tier].name }} tier limits:</strong>
+                📄 Pages: {{ tier_limits.max_pages }} | 📝 Blogs: {{ tier_limits.max_blogs }} | 🛍️ Products: {{ tier_limits.max_products }} | 📏 Content: {{ tier_limits.max_content_length }} chars
+            </small>
+        </div>
+        <div class="hero-pricing-link">
+            <a href="#pricing" onclick="showUpgradeModal()">See pricing & plans</a>
+        </div>
+    </div>
+
+    <!-- Pricing Modal (hidden by default) -->
+    <div id="upgradeModal" class="modal" style="display: none;">
+        <div class="modal-content pricing-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> Choose Your Perfect Plan</h2>
+                <p class="modal-subtitle">Get more visibility and drive traffic from AI platforms</p>
+                <span class="close" onclick="hideUpgradeModal()">&times;</span>
+            </div>
+            <div class="pricing-cards-row">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Free Sample</h3>
+                        <div class="price price-orange">€0</div>
+                        <div class="period">Limited</div>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check"></i> 5 Pages</li>
+                        <li><i class="fas fa-check"></i> 10 Blog Posts</li>
+                        <li><i class="fas fa-check"></i> 10 Products</li>
+                        <li><i class="fas fa-check"></i> 500 chars content</li>
+                    </ul>
+                    <button class="pricing-cta-btn" style="background: #f58220; color: #fff;" disabled>Continue with Free</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Premium</h3>
+                        <div class="price price-orange">€19</div>
+                        <div class="period">One-time</div>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check"></i> 100 Pages</li>
+                        <li><i class="fas fa-check"></i> 100 Blog Posts</li>
+                        <li><i class="fas fa-check"></i> 100 Products</li>
+                        <li><i class="fas fa-check"></i> 2000 chars content</li>
+                        <li><i class="fas fa-check"></i> Priority support</li>
+                    </ul>
+                    <button class="pricing-cta-btn" style="background: #f58220; color: #fff;" onclick="upgradeTier('premium')">Upgrade Now</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Pro</h3>
+                        <div class="price price-orange">€4.99</div>
+                        <div class="period">per month</div>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check"></i> 1000 Pages</li>
+                        <li><i class="fas fa-check"></i> 1000 Blog Posts</li>
+                        <li><i class="fas fa-check"></i> 1000 Products</li>
+                        <li><i class="fas fa-check"></i> 5000 chars content</li>
+                        <li><i class="fas fa-check"></i> Auto-generation</li>
+                    </ul>
+                    <button class="pricing-cta-btn" style="background: #f58220; color: #fff;" onclick="upgradeTier('pro')">Subscribe</button>
+                </div>
+            </div>
+            <div class="pricing-footer-notes">
+                <p><i class="fas fa-shield-alt"></i> Secure payment processing</p>
+                <p><i class="fas fa-undo"></i> 30-day money-back guarantee</p>
+                <p><i class="fas fa-headset"></i> 24/7 customer support</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- The rest of the app (chat, settings, results) will be injected after URL submit -->
+    <div id="appContent" style="display:none;"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

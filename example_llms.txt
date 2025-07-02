@@ -1,0 +1,25 @@
+# Example Website
+
+A comprehensive resource for technology and tutorials
+
+## Key Topics
+- Technology
+- Tutorials
+- Web Development
+- Python
+- JavaScript
+
+## Important Pages
+- [Getting Started with Python](https://example.com/python-tutorial): Learn the basics of Python programming with our comprehensive tutorial series
+- [Web Development Fundamentals](https://example.com/web-dev): Master HTML, CSS, and JavaScript with hands-on examples
+- [Advanced JavaScript Techniques](https://example.com/js-advanced): Explore modern JavaScript features and best practices
+- [Database Design Principles](https://example.com/database-design): Understand relational database design and optimization
+- [API Development Guide](https://example.com/api-guide): Build robust REST APIs with proper authentication and documentation
+
+## Site Overview
+- **Total Pages**: 25
+- **Last Updated**: 2024-01-15
+- **Sitemap**: https://example.com/sitemap.xml
+
+---
+*Generated on 2024-01-15 14:30:00* 

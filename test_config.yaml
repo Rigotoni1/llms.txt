@@ -1,0 +1,7 @@
+max_blogs: 3
+max_content_length: 100
+max_pages_to_process: 5
+request_delay: 0.1
+respect_robots_txt: false
+site_name: AI Model Agency
+sitemap_url: https://aimodelagency.com/sitemap_index.xml

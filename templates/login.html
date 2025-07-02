@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LLMs.txt Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1><i class="fas fa-robot"></i> LLMs.txt Generator</h1>
+                <p>Enter your email to receive a secure login link</p>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                
+                <button type="submit" class="auth-btn">
+                    <i class="fas fa-paper-plane"></i> Send Login Link
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>No password needed! We'll send you a secure link to log in.</p>
+                <p><a href="{{ url_for('index') }}">← Back to Home</a></p>
+            </div>
+            
+            <div id="message" class="auth-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const messageDiv = document.getElementById('message');
+            const submitBtn = document.querySelector('.auth-btn');
+            
+            // Show loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            submitBtn.disabled = true;
+            messageDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/auth/send-login-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.className = 'auth-message success';
+                    messageDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Login Link Generated!</h3>
+                        <p>${data.message}</p>
+                        <div class="login-link-container">
+                            <p><strong>Click the link below to log in:</strong></p>
+                            <a href="${data.login_url}" class="login-link-btn">
+                                <i class="fas fa-sign-in-alt"></i> Login Now
+                            </a>
+                            <p class="login-link-note">This link will expire in 1 hour</p>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.className = 'auth-message error';
+                    messageDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>${data.error}</p>
+                    `;
+                }
+            } catch (error) {
+                messageDiv.className = 'auth-message error';
+                messageDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Network error. Please try again.</p>
+                `;
+            }
+            
+            messageDiv.style.display = 'block';
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Login Link';
+            submitBtn.disabled = false;
+        });
+    </script>
+</body>
+</html> 

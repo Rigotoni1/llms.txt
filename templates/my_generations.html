@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Generations - LLMs.txt Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">
+                        <i class="fas fa-robot"></i>
+                        LLMs.txt Generator
+                    </h1>
+                    <p class="app-subtitle">My Generations</p>
+                </div>
+                <div class="header-right">
+                    <span class="user-info">
+                        <i class="fas fa-user"></i>
+                        {{ user.email }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="generations-container">
+                <div class="generations-header">
+                    <h2><i class="fas fa-history"></i> My Generations</h2>
+                    <p>View and manage your saved LLMs.txt generations</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create New Generation
+                    </a>
+                </div>
+
+                {% if user.generations %}
+                <div class="generations-grid">
+                    {% for generation in user.generations|sort(attribute='created_at', reverse=true) %}
+                    <div class="generation-card">
+                        <div class="generation-header">
+                            <h3>{{ generation.site_name or 'Website' }}</h3>
+                            <span class="generation-date">
+                                {{ generation.created_at.split('T')[0] if generation.created_at else 'Unknown' }}
+                            </span>
+                        </div>
+                        
+                        <div class="generation-details">
+                            {% if generation.stats %}
+                            <div class="generation-stats">
+                                <div class="stat">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>{{ generation.stats.get('total_pages', 0) }} Pages</span>
+                                </div>
+                                <div class="stat">
+                                    <i class="fas fa-blog"></i>
+                                    <span>{{ generation.stats.get('blog_posts', 0) }} Blogs</span>
+                                </div>
+                                <div class="stat">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>{{ generation.stats.get('products', 0) }} Products</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if generation.sitemap_url %}
+                            <div class="generation-url">
+                                <i class="fas fa-link"></i>
+                                <span>{{ generation.sitemap_url }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="generation-actions">
+                            {% if generation.filename %}
+                            <a href="{{ url_for('download_file', filename=generation.filename) }}" class="btn btn-success">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                            
+                            {% if generation.content %}
+                            <button class="btn btn-info" onclick="viewContent('{{ generation.id }}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Generations Yet</h3>
+                    <p>You haven't created any LLMs.txt files yet. Start by creating your first generation!</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create First Generation
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Content Preview Modal -->
+    <div id="contentModal" class="modal file-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('contentModal')">&times;</span>
+            <h3>Generated Content</h3>
+            <pre id="contentPreview"></pre>
+        </div>
+    </div>
+
+    <script>
+        function viewContent(generationId) {
+            // In a real implementation, you would fetch the content from the server
+            // For now, we'll show a placeholder
+            document.getElementById('contentPreview').textContent = 'Content preview would be displayed here...';
+            document.getElementById('contentModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

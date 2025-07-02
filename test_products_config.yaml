@@ -1,0 +1,10 @@
+max_blogs: 5
+max_detailed_content: 15
+max_nested_links: 2
+max_pages_to_process: 5
+max_sitemaps: 3
+output_file: outputs/test_products_detailed.txt
+request_delay: 0.5
+respect_robots_txt: false
+site_name: Bomba Surf Test
+sitemap_url: https://bombasurf.com/sitemap_index.xml
