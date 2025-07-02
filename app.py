@@ -26,7 +26,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from main import SitemapParser, ContentScraper, LLMsTxtGenerator, RobotsTxtChecker
+from main import SitemapParser, LLMsTxtGenerator, RobotsTxtChecker
+from firecrawl_working import WorkingFirecrawlScraper
 from utils import validate_config, create_sample_config, format_file_size
 
 # Configure logging
@@ -625,12 +626,31 @@ def generate():
 def download_file(filename):
     """Download generated file."""
     try:
+        # Security check - ensure filename is safe
+        if '..' in filename or '/' in filename:
+            return jsonify({'error': 'Invalid filename'}), 400
+            
         file_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+        
+        # Log the attempt
+        logger.info(f"Download attempt for file: {filename}")
+        logger.info(f"Full path: {file_path}")
+        logger.info(f"File exists: {os.path.exists(file_path)}")
+        logger.info(f"Directory contents: {os.listdir(app.config['OUTPUT_FOLDER'])}")
+        
         if os.path.exists(file_path):
-            return send_file(file_path, as_attachment=True)
+            # Check if file is readable
+            if os.access(file_path, os.R_OK):
+                logger.info(f"File is readable, sending: {file_path}")
+                return send_file(file_path, as_attachment=True)
+            else:
+                logger.error(f"File exists but is not readable: {file_path}")
+                return jsonify({'error': 'File exists but is not accessible'}), 500
         else:
+            logger.error(f"File not found: {file_path}")
             return jsonify({'error': 'File not found'}), 404
     except Exception as e:
+        logger.error(f"Download error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/upload-config', methods=['POST'])

@@ -5,7 +5,8 @@ import gc
 import time
 from rq import get_current_job, Queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from main import SitemapParser, ContentScraper, LLMsTxtGenerator
+from main import SitemapParser, LLMsTxtGenerator
+from firecrawl_working import WorkingFirecrawlScraper
 from utils import validate_config, format_file_size
 from datetime import datetime
 import multiprocessing
@@ -46,6 +47,8 @@ def log_progress(task_id, message, progress_data=None):
 
 def process_url_batch(batch_data, task_id, batch_id):
     """Process a single batch of URLs with memory management."""
+    print("DEBUG: process_url_batch called, scraped_content will be initialized")
+    scraped_content = {}  # Always define at the top
     try:
         config = batch_data['config']
         urls = batch_data['urls']
@@ -53,8 +56,7 @@ def process_url_batch(batch_data, task_id, batch_id):
         
         log_progress(task_id, f'Starting batch {batch_id} with {len(urls)} URLs')
         
-        content_scraper = ContentScraper(config)
-        scraped_content = {}
+        content_scraper = WorkingFirecrawlScraper(config)
         
         # Process URLs in parallel within the batch
         with ThreadPoolExecutor(max_workers=MAX_WORKERS_PER_BATCH) as executor:
@@ -89,13 +91,11 @@ def process_url_batch(batch_data, task_id, batch_id):
         redis_conn.setex(batch_key, 3600, json.dumps(scraped_content))
         
         log_progress(task_id, f'Completed batch {batch_id}: {len(scraped_content)} URLs scraped')
-        
+        result = len(scraped_content)
         # Force garbage collection
         del scraped_content
         gc.collect()
-        
-        return len(scraped_content)
-        
+        return result
     except Exception as e:
         log_progress(task_id, f'Batch {batch_id} failed: {str(e)}')
         raise

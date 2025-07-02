@@ -8,4 +8,5 @@ Flask==2.3.3
 Werkzeug==2.3.7
 stripe>=8.0.0
 rq>=1.15.0
-redis>=4.5.0 
+redis>=4.5.0
+firecrawl-py>=1.0.0 
