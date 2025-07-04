@@ -549,6 +549,15 @@ def stream_logs(task_id):
 def generate():
     """Generate llms.txt from form data (enqueue background job for all tiers)."""
     try:
+        # DEBUG: Check environment variables
+        firecrawl_api_key = os.environ.get('FIRECRAWL_API_KEY')
+        logger.info(f"🔍 DEBUG: FIRECRAWL_API_KEY from env: {'SET' if firecrawl_api_key else 'NOT SET'}")
+        if firecrawl_api_key:
+            logger.info(f"🔍 DEBUG: FIRECRAWL_API_KEY length: {len(firecrawl_api_key)}")
+            logger.info(f"🔍 DEBUG: FIRECRAWL_API_KEY starts with: {firecrawl_api_key[:10]}...")
+        else:
+            logger.error("❌ DEBUG: FIRECRAWL_API_KEY environment variable is not set!")
+        
         user_id = session.get('user_id')
         current_tier = get_user_tier(user_id)
         tier_limits = get_tier_limits(current_tier)
@@ -591,8 +600,15 @@ def generate():
             'respect_robots_txt': respect_robots,
             'request_delay': request_delay,
             'output_file': 'llms.txt',
-            'backup_existing': True
+            'backup_existing': True,
+            # Add Firecrawl API key to config
+            'firecrawl_api_key': firecrawl_api_key
         }
+        
+        # DEBUG: Log config keys
+        logger.info(f"🔍 DEBUG: Config keys: {list(config.keys())}")
+        logger.info(f"🔍 DEBUG: firecrawl_api_key in config: {'SET' if config.get('firecrawl_api_key') else 'NOT SET'}")
+        
         # Enqueue background job for all tiers
         rq_queue.enqueue(generate_llms_background, config, task_id, job_id=task_id)
         

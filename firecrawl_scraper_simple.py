@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Working Firecrawl-based content scraper for LLMs.txt Generator
-Based on actual API structure
+Simplified Firecrawl-based content scraper for LLMs.txt Generator
 """
 
 import os
@@ -10,6 +9,7 @@ import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse
+import requests
 
 try:
     from firecrawl import FirecrawlApp
@@ -20,40 +20,21 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-class WorkingFirecrawlScraper:
-    """Working Firecrawl-based content scraper."""
+class SimpleFirecrawlScraper:
+    """Simplified Firecrawl-based content scraper."""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        
-        # DEBUG: Check config and environment for API key
-        config_api_key = config.get('firecrawl_api_key')
-        env_api_key = os.environ.get('FIRECRAWL_API_KEY')
-        
-        print(f"🔍 DEBUG: firecrawl_api_key from config: {'SET' if config_api_key else 'NOT SET'}")
-        print(f"🔍 DEBUG: FIRECRAWL_API_KEY from env: {'SET' if env_api_key else 'NOT SET'}")
-        
-        if config_api_key:
-            print(f"🔍 DEBUG: Config API key length: {len(config_api_key)}")
-            print(f"🔍 DEBUG: Config API key starts with: {config_api_key[:10]}...")
-        if env_api_key:
-            print(f"🔍 DEBUG: Env API key length: {len(env_api_key)}")
-            print(f"🔍 DEBUG: Env API key starts with: {env_api_key[:10]}...")
-        
-        self.api_key = config_api_key or env_api_key
+        self.api_key = config.get('firecrawl_api_key') or os.environ.get('FIRECRAWL_API_KEY')
         
         if not self.api_key:
-            print("❌ DEBUG: No API key found in config or environment!")
-            print(f"🔍 DEBUG: Available config keys: {list(config.keys())}")
             raise ValueError("Firecrawl API key required. Set firecrawl_api_key in config or FIRECRAWL_API_KEY environment variable.")
-        
-        print(f"✅ DEBUG: Using API key: {self.api_key[:10]}...")
         
         if not FIRECRAWL_AVAILABLE:
             raise ImportError("Firecrawl not installed. Run: pip install firecrawl-py")
         
         self.app = FirecrawlApp(api_key=self.api_key)
-        logger.info("Working Firecrawl scraper initialized")
+        logger.info("Simple Firecrawl scraper initialized")
     
     def scrape_content(self, url: str, config: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """Scrape content from a URL using Firecrawl."""
@@ -71,14 +52,30 @@ class WorkingFirecrawlScraper:
                 timeout=config.get('firecrawl_timeout', 120000)
             )
             
-            if not result or not result.success:
+            if not result:
                 logger.warning(f"Firecrawl failed to scrape {url}")
                 return None
             
-            # Extract content from result
-            markdown_content = result.markdown or ""
-            title = result.title or ""
-            description = result.description or ""
+            # Extract data from result
+            if hasattr(result, 'data'):
+                data = result.data
+            else:
+                data = result.get('data', {})
+            
+            if hasattr(data, 'metadata'):
+                metadata = data.metadata
+            else:
+                metadata = data.get('metadata', {})
+            
+            # Extract content
+            if hasattr(data, 'markdown'):
+                markdown_content = data.markdown
+            else:
+                markdown_content = data.get('markdown', '')
+            
+            # Extract metadata fields
+            title = getattr(metadata, 'title', '') if hasattr(metadata, 'title') else metadata.get('title', '')
+            description = getattr(metadata, 'description', '') if hasattr(metadata, 'description') else metadata.get('description', '')
             
             content = {
                 'url': url,
@@ -120,10 +117,13 @@ class WorkingFirecrawlScraper:
             # Configure crawl options
             limit = config.get('max_pages_to_process', 10)
             
-            # Start the crawl (using correct API parameters)
+            # Start the crawl
             crawl_result = self.app.crawl_url(
                 base_url,
-                limit=limit
+                limit=limit,
+                formats=['markdown', 'html'],
+                only_main_content=config.get('only_main_content', True),
+                timeout=config.get('firecrawl_timeout', 120000)
             )
             
             if not crawl_result:
@@ -131,7 +131,11 @@ class WorkingFirecrawlScraper:
                 return {}
             
             # Get crawl ID
-            crawl_id = crawl_result.id
+            if hasattr(crawl_result, 'id'):
+                crawl_id = crawl_result.id
+            else:
+                crawl_id = crawl_result.get('id')
+            
             logger.info(f"Crawl started with ID: {crawl_id}")
             
             # Poll for completion
@@ -148,16 +152,29 @@ class WorkingFirecrawlScraper:
                     time.sleep(poll_interval)
                     continue
                 
-                status = status_result.status
+                # Get status
+                if hasattr(status_result, 'status'):
+                    status = status_result.status
+                else:
+                    status = getattr(status_result, 'status', 'unknown')
+                
                 logger.info(f"Crawl status: {status}")
                 
                 if status == 'completed':
                     # Process completed crawl data
-                    data = status_result.data or []
+                    if hasattr(status_result, 'data'):
+                        data = status_result.data
+                    else:
+                        data = getattr(status_result, 'data', [])
                     
                     for page_data in data:
                         # Extract URL and content from page data
-                        url = page_data.url if hasattr(page_data, 'url') else ""
+                        if hasattr(page_data, 'metadata'):
+                            metadata = page_data.metadata
+                        else:
+                            metadata = getattr(page_data, 'metadata', {})
+                        
+                        url = getattr(metadata, 'sourceURL', '') if hasattr(metadata, 'sourceURL') else metadata.get('sourceURL', '')
                         
                         if url:
                             content = self._process_crawl_page_data(page_data, url)
@@ -183,10 +200,21 @@ class WorkingFirecrawlScraper:
     def _process_crawl_page_data(self, page_data: Any, url: str) -> Optional[Dict[str, Any]]:
         """Process a single page's data from a crawl result."""
         try:
-            # Extract content from page data
-            markdown_content = page_data.markdown if hasattr(page_data, 'markdown') else ""
-            title = page_data.title if hasattr(page_data, 'title') else ""
-            description = page_data.description if hasattr(page_data, 'description') else ""
+            # Extract metadata
+            if hasattr(page_data, 'metadata'):
+                metadata = page_data.metadata
+            else:
+                metadata = getattr(page_data, 'metadata', {})
+            
+            # Extract content
+            if hasattr(page_data, 'markdown'):
+                markdown_content = page_data.markdown
+            else:
+                markdown_content = getattr(page_data, 'markdown', '')
+            
+            # Extract metadata fields
+            title = getattr(metadata, 'title', '') if hasattr(metadata, 'title') else metadata.get('title', '')
+            description = getattr(metadata, 'description', '') if hasattr(metadata, 'description') else metadata.get('description', '')
             
             content = {
                 'url': url,
@@ -245,7 +273,7 @@ class WorkingFirecrawlScraper:
         return 'page'
 
 
-# Test the working scraper
+# Test the scraper
 if __name__ == "__main__":
     # Test configuration
     test_config = {
@@ -253,12 +281,13 @@ if __name__ == "__main__":
         'max_pages_to_process': 5,
         'max_content_length': 500,
         'only_main_content': True,
-        'firecrawl_timeout': 120000
+        'firecrawl_timeout': 120000,
+        'firecrawl_wait_for': 2000
     }
     
     # Test the scraper
     try:
-        scraper = WorkingFirecrawlScraper(test_config)
+        scraper = SimpleFirecrawlScraper(test_config)
         
         # Test single URL scraping
         test_url = "https://example.com"
@@ -268,11 +297,8 @@ if __name__ == "__main__":
             print(f"✅ Successfully scraped: {content['title']}")
             print(f"Content length: {len(content['content'])} chars")
             print(f"Keywords: {content['keywords']}")
-            print(f"Source type: {content['source_type']}")
         else:
             print("❌ Failed to scrape content")
             
     except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc() 
+        print(f"❌ Error: {e}") 

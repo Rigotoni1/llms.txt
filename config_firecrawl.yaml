@@ -1,0 +1,50 @@
+# Firecrawl Configuration for LLMs.txt Generator
+# This configuration uses Firecrawl's API for simplified web scraping
+
+# Firecrawl API Configuration
+firecrawl_api_key: ${FIRECRAWL_API_KEY}  # Set via environment variable
+
+# Site Information
+site_name: "My Website"
+site_description: "A comprehensive resource"
+
+# Content Processing Limits
+max_pages_to_process: 10
+max_content_length: 500
+min_content_length: 50
+
+# Firecrawl Specific Settings
+only_main_content: true
+firecrawl_timeout: 120000  # 2 minutes in milliseconds
+firecrawl_wait_for: 2000   # 2 seconds in milliseconds
+
+# Crawling Configuration
+crawl_max_wait_time: 300   # 5 minutes
+crawl_poll_interval: 10    # 10 seconds
+
+# Output Configuration
+output_file: "llms.txt"
+backup_existing: true
+
+# Content Detection
+default_topics: ["Technology", "Business", "Web Development"]
+
+# Optional: Structured Data Extraction
+extraction_prompt: "Extract the main information, products, and services from this page."
+
+# Optional: Custom Actions (for interactive pages)
+# actions:
+#   - type: "wait"
+#     milliseconds: 2000
+#   - type: "click"
+#     selector: "button.load-more"
+#   - type: "wait"
+#     milliseconds: 3000
+#   - type: "scrape"
+
+# Optional: Advanced Firecrawl Settings
+# exclude_tags: ["nav", "footer", "sidebar"]
+# max_crawl_depth: 3
+# custom_headers:
+#   User-Agent: "LLMs.txt Generator Bot"
+#   Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" 

@@ -54,6 +54,16 @@ def process_url_batch(batch_data, task_id, batch_id):
         urls = batch_data['urls']
         batch_start = batch_data.get('batch_start', 0)
         
+        # DEBUG: Check config for firecrawl_api_key
+        firecrawl_api_key = config.get('firecrawl_api_key')
+        print(f"🔍 DEBUG: firecrawl_api_key in batch config: {'SET' if firecrawl_api_key else 'NOT SET'}")
+        if firecrawl_api_key:
+            print(f"🔍 DEBUG: firecrawl_api_key length: {len(firecrawl_api_key)}")
+            print(f"🔍 DEBUG: firecrawl_api_key starts with: {firecrawl_api_key[:10]}...")
+        else:
+            print("❌ DEBUG: firecrawl_api_key is missing from config!")
+            print(f"🔍 DEBUG: Available config keys: {list(config.keys())}")
+        
         log_progress(task_id, f'Starting batch {batch_id} with {len(urls)} URLs')
         
         content_scraper = WorkingFirecrawlScraper(config)

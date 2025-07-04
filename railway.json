@@ -28,6 +28,10 @@
         {
           "source": "outputs",
           "target": "/app/outputs"
+        },
+        {
+          "source": "uploads",
+          "target": "/app/uploads"
         }
       ]
     },
@@ -45,6 +49,10 @@
         {
           "source": "outputs",
           "target": "/app/outputs"
+        },
+        {
+          "source": "uploads",
+          "target": "/app/uploads"
         }
       ]
     }
